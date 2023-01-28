@@ -1,19 +1,14 @@
 {
     "manifest_version": 3,
-    "name": "Webcam Detection Extension",
+    "name": "Exam proctor Extension",
     "description": "An extension that uses the webcam to detect faces and objects.",
     "version": "1.0",
     "permissions": [
         "offscreenCanvas",
-        //["offscreen"],
         "activeTab",
         "storage"
     ],
     "background": {
         "service_worker": "popup.js"
     }
-    //"action": {
-    //    "default_popup": "popup.html"
-    //}
-    //"content_security_policy": "script-src 'self' https://cdn.jsdelivr.net; object-src 'self'"
 }
