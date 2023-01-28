@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My Extension</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.4.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.2.2/dist/face-landmarks-detection.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.1.1/dist/coco-ssd.min.js"></script>
+    <script src="popup.js"></script>
+  </head>
+  <body>
+    <h1>My Extension</h1>
+    <button id="start-webcam-btn">Start Webcam</button>
+    <video autoplay></video>
+
+    <button id="stop-webcam-btn" style="display: none">Stop Webcam</button>
+    <video id="webcam-stream" style="display: none"></video>
+    <br />
+    <div id="detection-results"></div>
+  </body>
+</html>
