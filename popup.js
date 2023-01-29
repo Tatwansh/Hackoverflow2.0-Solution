@@ -1,63 +1,60 @@
-//chrome.runtime.onMessage.addViewer((msg) => {
-//    if (!msg.offscreen) {
-//      return;
-//    }
-//    switch (msg.type) {
-//      case "play":
-//       play(msg.play);
-//        break;
-//      case "pause":
-//        pauseAudio();
-//        break;
-//    }
-//  });
-const video = document.querySelector('video');
-const canvas = new OffscreenCanvas(video.width, video.height);
-const ctx = canvas.getContext('2d');
+let button = document.getElementById('start-webcam-btn');
 
-navigator.mediaDevices.getUserMedia({ video: true })
-  .then((stream) => {
-    video.srcObject = stream;
-    video.onloadedmetadata = (e) => {
-      video.play();
-      drawVideo();
-    };
-  });
+button.onclick = async () => {
+    console.log('Webcam button clicked');
 
-function drawVideo() {
-  ctx.drawImage(video, 0, 0, video.width, video.height);
-  requestAnimationFrame(drawVideo);
-}
-videoTrack = stream.getVideoTracks()[0];
+    navigator.getUserMedia = navigator.getUserMedia ||
+        navigator.webkitGetUserMedia ||
+        navigator.mozGetUserMedia;
 
-// load the TensorFlow.js model for object and face detection
-const modelURL = 'https://tfhub.dev/tensorflow/tfjs-model/ssd_mobilenet_v2/1/default/1';
-const model = await tf.loadGraphModel(modelURL);
+    if (navigator.getUserMedia) {
+        navigator.getUserMedia({ audio: false, video: { width: 1280, height: 720 } },
+            async (stream) => {
+                const video = document.getElementById('webcam-video');
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    video.play();
 
-// detect objects and faces in the webcam feed
-async function detect() {
-while (true) {
-    const predictions = await model.detect(video);
-    let personCount = 0;
-    let electronicDeviceCount = 0;
-    for (let i = 0; i < predictions.length; i++) {
-        if (predictions[i].class === 'person') {
-            personCount++;}
-        else if (predictions[i].class === 'electronic device') {
-            electronicDeviceCount++;
-        }
+                    const modelURL = 'https://tfhub.dev/tensorflow/tfjs-model/ssd_mobilenet_v2/2/default/1';
+                    const model = await tf.loadGraphModel(modelURL);
+                    const class_names = ['person', 'electronic_device'];
+
+                    const detectFrame = async () => {
+                        const input = tf.browser.fromPixels(video);
+                        const predictions = await model.executeAsync(input.expandDims(0));
+
+                        let num_persons = 0;
+                        let electronic_device_detected = false;
+
+                        for (let i = 0; i < predictions.dataSync().length; i += 7) {
+                            const class_id = predictions.dataSync()[i + 1];
+                            const class_name = class_names[class_id];
+                            if (class_name === 'person') {
+                                num_persons++;
+                            } else if (class_name === 'electronic_device') {
+                                electronic_device_detected = true;
+                            }
+                        }
+                        input.dispose();
+
+                        if (num_persons >= 2) {
+                            console.log('Two or more persons detected in the frame');
+                        }
+                        if (electronic_device_detected) {
+                            console.log('Electronic device detected in the frame');
+                        }
+
+                        requestAnimationFrame(detectFrame);
+                    };
+
+                    detectFrame();
+                };
+            },
+            (err) => {
+                console.error(`The following error occurred: ${err.name}`);
+            }
+        );
+    } else {
+        console.log("getUserMedia not supported");
     }
-
-    if (personCount >= 2) {
-      alert("2 or more persons detected in the frame!");
-    }
-    if (electronicDeviceCount > 0) {
-      alert("Electronic device detected in the frame!");
-    }
-    // wait for a second before detecting again
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-}
-detect();
-
-
+};
